@@ -1,0 +1,28 @@
+[build-system]
+requires = [
+    "numpy",
+    "pandas",
+    "pathlib",
+    "tqdm",
+    "torch",
+    "matplotlib",
+    "setuptools",
+    "hatchling",
+    "torchjd"
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "alice_jobs_package"
+version = "1.2.7"
+authors = [
+  { name="Mikolaj Zasada", email="mzasada@agh.edu.pl" }
+]
+description = "Package thath allows preprocessing of ALICE data and training/evaluation of pytroch models"
+readme = "README.md"
+requires-python = ">=3.11.5"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]

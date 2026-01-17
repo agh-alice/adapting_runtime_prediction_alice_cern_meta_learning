@@ -1,0 +1,47 @@
+{
+  "categories_columns": [
+    "executable",
+    "arguments",
+    "lpmproductiontag",
+    "cpu_info.cpu_cache_size",
+    "ce_name",
+    "outputerrore",
+    "cpu_info.cpu_initial_apicid",
+    "memorylimit_checking.hard_limit_ulimit",
+    "cpu_info.cpu_hyperthreading_enabled",
+    
+    "addr",
+    "user",
+    "file_type_category",
+    "working_group",
+    "collision_type",
+    "cpu_info.cpu_model_name",
+    "site"
+  ],
+  "numerical_columns": [
+    "predicted_weighted_ttl",
+    "predicted_weighted_ttl_std",
+    "lpmrunnumber",
+    "lhcbmarks.lhcbmarks",
+    "cpu_info.cpu_model",
+    "ram_info.ram_kb_swaptotal",
+    "virtualization.execution_time",
+    "ulimit.ulimit_hard_max_user_processes",
+    "connectivity.curl_ipv6_status",
+    "processes_visibility.users_count",
+    "processes_visibility.execution_time",
+    "ram_info.execution_time",
+
+    "startedtimestamp",
+    "ttl",
+    "lpmjobtypeid",
+    "requestedcpus",
+    "energy_level_numeric",
+    "nevents",
+    "nsigevents",
+    "ntimeframes"
+  ],
+  "special_columns": [],
+  "inner_num_columns": [],
+  "inner_cat_columns": []
+}

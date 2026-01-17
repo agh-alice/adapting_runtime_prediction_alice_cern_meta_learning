@@ -1,0 +1,47 @@
+{
+  "categories_columns": [
+    "executable",
+    "origrequirements",
+    "packages",
+    "ce_name",
+    "jobtag",
+    "output",
+    "inputdatatype",
+    "lpmproductiontag",
+    "jdlvariables",
+    "validationcommand",
+    "inputfile",
+    "memorylimit_checking.condor_mem_binding",
+    "tmp.temp_dir",
+    "requirements",
+
+    "addr",
+    "user",
+    "file_type_category",
+    "working_group",
+    "collision_type",
+    "cpu_info.cpu_model_name",
+    "site"
+  ],
+  
+  "numerical_columns": [
+    "predicted_weighted_ttl",
+    "predicted_weighted_ttl_std",
+    "lpmchainid",
+    "lpmrunnumber",
+    "cvmfs_cache_size.cvmfs_cache_size",
+    "lpmjobtypeid",
+    "cpu_info.cpu_bogomips",
+
+    "startedtimestamp",
+    "ttl",
+    "energy_level_numeric",
+    "nevents",
+    "nsigevents",
+    "ntimeframes",
+    "requestedcpus"
+  ],
+  "special_columns": [],
+  "inner_num_columns": [],
+  "inner_cat_columns": []
+}

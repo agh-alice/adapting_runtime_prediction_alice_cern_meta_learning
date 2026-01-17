@@ -1,0 +1,28 @@
+{
+  "data_path": "/net/pr2/projects/plgrid/plggalice_ai/data/data_8_may",
+  "processing_target": "MLP",
+  
+  "verbose" : true,
+  "workers": 4,
+  "dist_backend": "nccl",
+  "seed": 42,
+  "model_name": "MLP_1024",
+  "batch_size": 512,
+  "epochs": 20,
+  "evaluation_frequency": 1,
+  "checkpoint_frequency": 10,
+  "train_valid_split": 0.2,
+  "shuffle_before_split": true,
+  "shuffle_after_split": true,
+  "learning_rate": 0.001,
+  "optimizer": "adam",
+  "scheduler": "step",
+  "scheduler_gamma": 0.9,
+  "scheduler_step": 10,
+  "loss": "huber",
+  "metrics": [
+    "rmse",
+    "mae",
+    "mape"
+  ]
+}

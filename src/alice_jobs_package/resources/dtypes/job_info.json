@@ -1,0 +1,9 @@
+{
+    "job_id": "float64",
+    "jdl_set": "bool",
+    "trace_set": "bool",
+    "status": "object",
+    "job_submit_timestamp": "float64",
+    "last_update": "object",
+    "site": "object"
+}

@@ -1,0 +1,16 @@
+{
+    "numerical": {
+        "walltime_minutes": {
+            "min": 10,
+            "max": 86400
+        }
+    },
+    "categorical": {
+        "user": [
+            "alitrain",
+            "aliprod",
+            "alidaq",
+            "alihyperloop"
+        ]
+    }
+}

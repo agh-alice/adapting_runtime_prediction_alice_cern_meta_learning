@@ -1,0 +1,20 @@
+{
+    "job_id": "float64",
+    "aliencpuefficiency": "float64",
+    "cputime": "float64",
+    "host": "object",
+    "maxrss": "float64",
+    "cpuefficiency": "object",
+    "finaltimestamp": "float64",
+    "masterjobid": "float64",
+    "pid": "float64",
+    "requestedcpus": "float64",
+    "requestedttl": "float64",
+    "runningtimestamp": "float64",
+    "savingtimestamp": "float64",
+    "startedtimestamp": "float64",
+    "walltime": "float64",
+    "maxvirt": "float64",
+    "site": "object",
+    "laststatuschangetimestamp": "float64"
+}
