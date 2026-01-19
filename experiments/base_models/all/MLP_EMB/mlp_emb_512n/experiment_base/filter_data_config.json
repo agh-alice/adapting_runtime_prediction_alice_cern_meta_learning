@@ -1,0 +1,10 @@
+{
+    "numerical": {
+    },
+    "categorical": {
+        "user": [
+            "alitrain",
+            "aliprod"
+        ]
+    }
+}

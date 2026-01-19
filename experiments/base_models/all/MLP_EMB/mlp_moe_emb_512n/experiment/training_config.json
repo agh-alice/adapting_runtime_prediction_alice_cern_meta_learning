@@ -1,0 +1,38 @@
+{
+  "data_path": "XXX",
+  "considered_columns_config_path": "considered_columns_config.json",
+  "ohe_threshold_config_path": "ohe_threshold_config.json",
+  "filter_data_config_path": "filter_data_config.json",
+  "processing_target": "MLP_EMBEDINGS",
+
+  "embeding_reduction_const": 20,
+ 
+  "multiprocessing_distributed": true,
+  "verbose" : true,
+  "workers": 4,
+  "dist_backend": "nccl",
+  "seed": 42,
+  "model_name": "BOTH_MLP_MOE_EMB_512",
+  "wandb_project": "Alice_Predictions_Series_Paper",
+  "wandb_entity": "Alice-ML",
+  "batch_size": 512,
+  "epochs": 300,
+  "evaluation_frequency": 1,
+  "checkpoint_frequency": 300,
+  "train_valid_split": 0.1,
+  "shuffle_before_split": true,
+  "shuffle_after_split": true,
+  "learning_rate": 0.001,
+  "optimizer": "adam",
+  "scheduler": "cosine",
+  "scheduler_gamma": 0.9,
+  "scheduler_step": 10,
+  "loss": "huber",
+  "metrics": [
+    "mae",
+    "rmse",
+    "mape",
+    "uep",
+    "smape"
+  ]
+}

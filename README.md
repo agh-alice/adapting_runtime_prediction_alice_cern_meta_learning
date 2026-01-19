@@ -17,7 +17,7 @@ As the package evolves rapidly, it is recommended to use the `-U` flag to ensure
 The package comprises four main components:
 
 ### 1.	Data Loader
-This component loads, parses, and cleans raw data into a single table, which can then be processed further using other parts of the package. Note that the data itself is not downloaded by this package; it must be accessed via external sources.
+This component loads, parses, and cleans raw data into a single table, which can then be further processed using other parts of the package. Note that the data itself is not publicly available. The script used to download the data from our internal copy is located in src/tools, but it requires proper credentials, which are available upon request.
 
 ```python
 from alice_jobs_package.data_loader import AliceDataLoader
@@ -37,11 +37,12 @@ In data_path there should be all needed data in format:
 - trace.csv
 - site sonar (folder of files with site-sonar-`timestamp`.out.xz naming)
 
-This process will generate two files:
-1.	joined_site_sonar.npz: This file contains the combined data from all site-sonar-<timestamp>.out.xz files.
-2.	joined_data.npz: This file contains the properly joined and cleaned data from all input files.
+This process generates three types of files:
+1.	joined_site_sonar.npz: Contains the combined data from all site-sonar-<timestamp>.out.xz files.
+2.	joined_data.npz: Contains the properly joined and cleaned data derived from the individual input files.
+3.	output_data.npz: Contains the processed version of joined_data augmented with aggregated metrics, and is ready for use in subsequent processing steps.
 
-This code currently assumes that all raw files may contain new values but not new categories. However, if new categories do appear, they must be added to the alice_jobs_package/resources/dtypes files. This ensures that the data is correctly typed. Without this declaration, the data might be improperly recognized.
+This code currently assumes that all raw files may contain new values but not exacly new categories. However, if new categories do appear, they must be added to the alice_jobs_package/resources/dtypes files. This ensures that the data is correctly typed. Without this declaration, the data might be improperly recognized.
 
 ### 2.	Config Generator
 Based on the data, this component generates a configuration file. This is necessary because new records may introduce additional columns, requiring updates to the configuration. The configuration maintains the context of the data, enabling the mapping of raw data into specific columns and attributes (referred to as dimensions).
@@ -79,7 +80,7 @@ The package includes a baseline file with predefined columns in the resources di
 }
 ```
 
-The second file also has a baseline in the resources directory, it is used in both cases OHE and Embedings. It defines the threshold for applying a limit on the number of distinct values allowed for a single processed column (rest will be set as unknown). The structure of this file is as follows:
+The second file also has a baseline in the resources directory, it is used only in case of One Hot Encoding. It defines the threshold for applying a limit on the number of distinct values allowed for a single processed column (rest will be set as unknown). The structure of this file is as follows:
 
 ```json
 {
