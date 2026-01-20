@@ -236,7 +236,7 @@ Each variant contains an `MLP_EMB/mlp_emb_512n/` experiment with:
 - **model**: `model_mlp_emb_512.py` (exports `MLPEmbedded512`)
 - **example configs**: `experiment_*/considered_columns_config.json`, `filter_data_config.json`, `ohe_threshold_config.json`, `training_config.json`
 
-### Meta-learning experiments (“MAML folder”) (`experiments/meta_learning/*`)
+### Meta-learning experiments (`experiments/meta_learning/*`)
 
 The scripts in `experiments/meta_learning/` implement meta-learning / online few-shot variants of the same `MLPEmbedded512` model interface. **Each of these files can be used as a drop-in replacement for the base-model `model_mlp_emb_512.py`** used in:
 
