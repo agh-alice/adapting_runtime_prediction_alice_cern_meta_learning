@@ -303,3 +303,31 @@ All meta-learning models expose a small set of hyperparameters controlling the *
   - `False` → keep the global expert frozen and create **ephemeral** adapted experts per group (original Reptile-style few-shot behaviour).
 
 These parameters can be set in your `training_config.json` under `args` to tune how quickly and how aggressively the model adapts to new job types or hosts.
+### Online adaptation experiments (`experiments/online_adaptation/*`)
+
+These scripts reproduce the experiments of the revised FGCS paper (ablation study, buffer-size analysis, task-definition comparison, catastrophic-forgetting analysis). Unlike the drop-in models above, each script is **self-contained**: it defines the model, meta-trains it with Reptile, and runs the online (causal, deployment-style) validation pass in a single process. The output-space is `log1p(hours)` with a log-space Huber loss plus a relative-MAE term.
+
+Running a script:
+
+1. Create an experiment directory with the four config files (`training_config.json`, `considered_columns_config.json`, `ohe_threshold_config.json`, `filter_data_config.json`). Use the base-model configs of the chosen dataset variant and one of the templates in `experiments/online_adaptation/configs/` as `training_config.json` (set `data_path`).
+2. Run the script from that directory: `python /path/to/ablation_06_learn_eval_maml_adapt_shared.py` (single GPU; the scripts read `./training_config.json`). Checkpoints (`training_checkpoint_*.pt`, `online_validation_checkpoint_*.pt`) are written to the working directory and the scripts resume from them.
+
+Online-adaptation hyperparameters are read from `training_config.json` (`online_min_support`, `online_max_support`, `online_inner_steps`, `online_inner_lr`, `online_adaptation_enabled`) together with the meta-training ones (`inner_lr`, `inner_steps`, `meta_step_size`, `rel_lambda`, `huber_delta_log`, `max_target`, `embedding_dropout`, `hidden_dropouts`, `weight_decay`); the values in the templates are the ones used in the paper. The paper's ablation runs use a buffer capacity of 100 (`online_max_support`); the deployed service uses 40.
+
+| Folder / script | Paper | What it does |
+|---|---|---|
+| `ablation/ablation_00_baseline_maml.py` … `ablation_04_reptile_improved.py` | Table 5, A0–A4 | Offline variants: second-order MAML, Reptile with BatchNorm/LayerNorm, log-space Huber, relative-MAE term |
+| `ablation/ablation_05_learn_eval_maml_fs.py` | Table 5, A5 | Few-shot online adaptation with a per-production FIFO buffer (ephemeral: adapted parameters are discarded after each batch) |
+| `ablation/ablation_05_erm_learn_eval_erm_buffer.py` | Table 5, A5-ERM | Same online mechanism as A5 on top of a plain ERM initialization (no meta-training) |
+| `ablation/ablation_06_learn_eval_maml_adapt_shared.py` | Table 5, A6 | Persisted variant: online SGD updates are written back into the shared model (the deployed configuration) |
+| `ablation/ablation_07_learn_eval_maml_adapt_no_buffer.py` | Table 5, A7 | Persisted updates from the single most recent sample per production (naive online SGD) |
+| `buffer/ablation_05_learn_eval_maml_fs_buffer_sweep.py` | Table 6, Figs. 7–8 | Buffer-capacity sweep (n = 10 … 500) on both workloads |
+| `buffer/ablation_06b_*`, `ablation_06c_*` | Section 6.3 | Minimum-support threshold analysis (with bootstrap uncertainty) |
+| `task_definition/ablation_06_learn_eval_maml_adapt_shared_{prod_id,host_id,host_and_prod_id}.py` | Table 9 | Task identity = Production ID, hostname, or both; run with `distinct_split_column: "hostname"` (see `configs/training_config.online_hostname_split.json`) |
+| `catastrophic_forgetting/learn_eval_maml_fs_with_cf.py` | Table 10, Fig. 13 | Backward-transfer analysis across four sequential validation quarters, ephemeral vs. persisted |
+| `catastrophic_forgetting/learn_eval_maml_fs_with_cf_realistic_recurrence.py` | Section 6.4.4 | Same, restricted to productions that remain active in later quarters |
+| `analysis/compute_adaptation_40.py` | Section 6.3, Figs. 9–11 | Relative adaptation time and job fraction for the 40-sample buffer (`ALICE_DATA_ROOT` points at the raw CSV extract) |
+| `analysis/sample_collection_figures.py`, `user_production_time_distribution.py` | Figs. 4–6 | Data-characterization figures of Section 3 |
+| `analysis/sensitivity_metrics.py`, `scalability_chart.py`, `cf_aliprod_figure.py` | Figs. 7–8, 13, 15 | Figure scripts fed with the numbers from the experiment logs |
+
+The Transformer-backbone variants (A8–A10) and the non-adaptive baselines of Table 3 (CatBoost, XGBoost, TabNet, Transformer) are trained with the base-model entrypoint (`alice_torchrun.py`) and are not part of this folder. Load-test code for Section 7 lives in a separate Gatling project.
