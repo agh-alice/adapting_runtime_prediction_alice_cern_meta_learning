@@ -12,6 +12,17 @@ from alice_jobs_package.utils import logging
 logger = logging.get_logger(__name__)
 
 
+def raw_jobtypeid_from_column(x, col, mean, std):
+    """Recover the raw (un-normalized) lpmjobtypeid from its z-score-standardized
+    column value, rounding to the nearest integer, instead of truncating the raw
+    standardized float directly with .long(). lpmjobtypeid is a NUMERICAL column
+    in this pipeline (not embedding-encoded); truncating the standardized value
+    collapses many distinct real production IDs into the same integer bucket
+    whenever std is large relative to typical ID-to-ID gaps (observed: ~163
+    distinct IDs collapsed into ~2 buckets on the Aliprod validation range)."""
+    return torch.round(x[:, col] * std + mean).long()
+
+
 # ---------------------------
 # Utility: positive head
 # ---------------------------
@@ -92,6 +103,7 @@ class MLPEmbedded512_MAML(BaseAliceModel):
 
         cols = training_config.column_names
         # Prefer hostname; fall back to lpmjobtypeid for backward compatibility
+        self._hostname_column_is_numeric = False
         if "hostname" in cols:
             self.hostname_column = cols.index("hostname")
         elif "lpmjobtypeid" in cols:
@@ -100,6 +112,7 @@ class MLPEmbedded512_MAML(BaseAliceModel):
                 "for meta-grouping / online adaptation."
             )
             self.hostname_column = cols.index("lpmjobtypeid")
+            self._hostname_column_is_numeric = True
         else:
             raise ValueError(
                 "Neither 'hostname' nor 'lpmjobtypeid' found in training_config.column_names"
@@ -109,6 +122,9 @@ class MLPEmbedded512_MAML(BaseAliceModel):
         self.lpmjobtypeid_column = self.hostname_column
 
         self.num_config = training_config.num_config
+        if self._hostname_column_is_numeric:
+            self._lpmjobtypeid_mean = float(self.num_config["lpmjobtypeid"]["mean"])
+            self._lpmjobtypeid_std = float(self.num_config["lpmjobtypeid"]["std"])
         self.cat_config = training_config.cat_config
         self.numerical_dim = len(self.num_config)
         self.categories_dim = len(self.cat_config)
@@ -161,6 +177,18 @@ class MLPEmbedded512_MAML(BaseAliceModel):
     # ---------------------------
     # Embeddings & preprocessing
     # ---------------------------
+
+    def _group_ids(self, x: torch.Tensor) -> torch.Tensor:
+        """Integer group ids for meta-grouping / online adaptation: the hostname
+        column is categorical (embedding-encoded), so .long() is correct for it;
+        the lpmjobtypeid fallback column is numerical (z-score-standardized) and
+        must be denormalized first (see raw_jobtypeid_from_column)."""
+        if self._hostname_column_is_numeric:
+            return raw_jobtypeid_from_column(
+                x, self.hostname_column, self._lpmjobtypeid_mean, self._lpmjobtypeid_std
+            )
+        return x[:, self.hostname_column].long()
+
     def _build_common_layers(self):
         # Reserve an UNK bucket (+1) for each categorical to be safe for OOV values at inference
         self.embeddings = nn.ModuleDict()
@@ -240,11 +268,11 @@ class MLPEmbedded512_MAML(BaseAliceModel):
           tasks: list of (sx, sy, qx, qy) for every hostname/group
                  (may have empty query if group size == 1)
         """
-        host_ids = x[:, self.hostname_column].long().unique()
+        host_ids = self._group_ids(x).unique()
         tasks = []
 
         for host_id in host_ids:
-            mask = x[:, self.hostname_column].long() == host_id
+            mask = self._group_ids(x) == host_id
             x_task = x[mask]
             y_task = y[mask]
 
@@ -375,7 +403,7 @@ class MLPEmbedded512_MAML(BaseAliceModel):
         if self.training:
             return
 
-        host_ids = x[:, self.hostname_column].long().cpu()
+        host_ids = self._group_ids(x).cpu()
         x_cpu = x.detach().cpu()
         y_cpu = y.detach().cpu()
 
@@ -460,7 +488,7 @@ class MLPEmbedded512_MAML(BaseAliceModel):
         # 3) EVAL + ONLINE FEW-SHOT ADAPTATION
         # -----------------------------
         self.expert.eval()
-        host_ids = x[:, self.hostname_column].long()
+        host_ids = self._group_ids(x)
         unique_ids = host_ids.unique()
 
         preds = torch.empty(x.size(0), 1, device=self.device)

@@ -12,6 +12,17 @@ from alice_jobs_package.utils import logging
 logger = logging.get_logger(__name__)
 
 
+def raw_jobtypeid_from_column(x, col, mean, std):
+    """Recover the raw (un-normalized) lpmjobtypeid from its z-score-standardized
+    column value, rounding to the nearest integer, instead of truncating the raw
+    standardized float directly with .long(). lpmjobtypeid is a NUMERICAL column
+    in this pipeline (not embedding-encoded); truncating the standardized value
+    collapses many distinct real production IDs into the same integer bucket
+    whenever std is large relative to typical ID-to-ID gaps (observed: ~163
+    distinct IDs collapsed into ~2 buckets on the Aliprod validation range)."""
+    return torch.round(x[:, col] * std + mean).long()
+
+
 # ---------------------------
 # Utility: positive head
 # ---------------------------
@@ -93,6 +104,8 @@ class MLPEmbedded512_MAML(BaseAliceModel):
         self.lpmjobtypeid_column = training_config.column_names.index("lpmjobtypeid")
 
         self.num_config = training_config.num_config
+        self._lpmjobtypeid_mean = float(self.num_config["lpmjobtypeid"]["mean"])
+        self._lpmjobtypeid_std = float(self.num_config["lpmjobtypeid"]["std"])
         self.cat_config = training_config.cat_config
         self.numerical_dim = len(self.num_config)
         self.categories_dim = len(self.cat_config)
@@ -226,11 +239,11 @@ class MLPEmbedded512_MAML(BaseAliceModel):
         Returns:
           tasks: list of (sx, sy, qx, qy) for every group (may have empty query if group size == 1)
         """
-        jobtype_ids = x[:, self.lpmjobtypeid_column].long().unique()
+        jobtype_ids = raw_jobtypeid_from_column(x, self.lpmjobtypeid_column, self._lpmjobtypeid_mean, self._lpmjobtypeid_std).unique()
         tasks = []
 
         for jobtypeid in jobtype_ids:
-            mask = x[:, self.lpmjobtypeid_column].long() == jobtypeid
+            mask = raw_jobtypeid_from_column(x, self.lpmjobtypeid_column, self._lpmjobtypeid_mean, self._lpmjobtypeid_std) == jobtypeid
             x_task = x[mask]
             y_task = y[mask]
 
@@ -402,7 +415,7 @@ class MLPEmbedded512_MAML(BaseAliceModel):
         if self.training:
             return
 
-        jobtype_ids = x[:, self.lpmjobtypeid_column].long().cpu()
+        jobtype_ids = raw_jobtypeid_from_column(x, self.lpmjobtypeid_column, self._lpmjobtypeid_mean, self._lpmjobtypeid_std).cpu()
         x_cpu = x.detach().cpu()
         y_cpu = y.detach().cpu()
 
@@ -486,7 +499,7 @@ class MLPEmbedded512_MAML(BaseAliceModel):
                 return self.expert(x_processed)
 
         self.expert.eval()
-        jobtype_ids = x[:, self.lpmjobtypeid_column].long()
+        jobtype_ids = raw_jobtypeid_from_column(x, self.lpmjobtypeid_column, self._lpmjobtypeid_mean, self._lpmjobtypeid_std)
         unique_ids = jobtype_ids.unique()
 
         preds = torch.empty(x.size(0), 1, device=self.device)
