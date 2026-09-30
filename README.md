@@ -305,12 +305,34 @@ All meta-learning models expose a small set of hyperparameters controlling the *
 These parameters can be set in your `training_config.json` under `args` to tune how quickly and how aggressively the model adapts to new job types or hosts.
 ### Online adaptation experiments (`experiments/online_adaptation/*`)
 
-These scripts reproduce the experiments of the revised FGCS paper (ablation study, buffer-size analysis, task-definition comparison, catastrophic-forgetting analysis). Unlike the drop-in models above, each script is **self-contained**: it defines the model, meta-trains it with Reptile, and runs the online (causal, deployment-style) validation pass in a single process. The output-space is `log1p(hours)` with a log-space Huber loss plus a relative-MAE term.
+These scripts reproduce the experiments of the revised FGCS paper (ablation study, buffer-size analysis, task-definition comparison, catastrophic-forgetting analysis). The A0--A7 scripts are **self-contained**: each defines the model, meta-trains it with Reptile, and runs the online (causal, deployment-style) validation pass in a single process. The A8--A10 Transformer launcher uses the package-level training and few-shot implementation described below. The output-space of the self-contained Reptile scripts is `log1p(hours)` with a log-space Huber loss plus a relative-MAE term.
 
 Running a script:
 
 1. Create an experiment directory and copy the config files for your workload from `experiments/online_adaptation/configs/aliprod/` or `.../configs/alidaq/` into it (`training_config.json`, `considered_columns_config.json`, `filter_data_config.json`), then set `data_path` in `training_config.json`. For the task-definition scripts (see the table below), use `training_config.hostname_split.json` (Production ID / Hostname variants) or `training_config.hostname_and_prod_id_split.json` (the combined-key variant) in place of `training_config.json`.
 2. Run the script from that experiment directory: `python /path/to/ablation_06_learn_eval_maml_adapt_shared.py` (single GPU; the scripts read `./training_config.json`). Checkpoints (`training_checkpoint_*.pt`, `online_validation_checkpoint_*.pt`) are written to the working directory and the scripts resume from them.
+
+The Transformer variants A8--A10 use the shared
+`ablation/ablation_08_10_transformer.py` entrypoint and select the ablation via
+`training_config.transformer_a8.json`, `training_config.transformer_a9.json`,
+or `training_config.transformer_a10.json`. Copy the selected file into a run
+directory together with the workload's `considered_columns_config.json` and
+`filter_data_config.json`, replace `XXX`, and launch it, for example:
+
+```bash
+PYTHONPATH=/path/to/alice_jobs_package/src \
+torchrun --standalone --nproc_per_node=1 \
+  /path/to/ablation/ablation_08_10_transformer.py \
+  --training_args_mode FILE \
+  --training_args_path training_config.transformer_a8.json
+```
+
+These Transformer experiments require `alice_jobs_package` at Git commit
+`0b94c45` or later. The package version alone is not sufficient to identify
+this capability because the few-shot Transformer support was added after the
+commit preparing version 1.3.3. The launcher checks the required API before
+loading the configuration and fails with a targeted error when an older
+package is active.
 
 Within a workload, `training_config.json` is identical across the ablation, buffer and catastrophic-forgetting scripts; what distinguishes A0–A7 is the model architecture and loss implemented in each script, not the config. Online-adaptation and meta-training hyperparameters (`ONLINE_MIN_SUPPORT`, `ONLINE_MAX_SUPPORT`, `ONLINE_INNER_STEPS`, `ONLINE_INNER_LR`, the meta-training inner-loop learning rate, `meta_step_size`, `rel_lambda`, `huber_delta_log`, `max_target`, `embedding_dropout`, `hidden_dropouts`, `weight_decay`) are module-level constants near the top of each script, not `training_config.json` fields — edit them there to change the buffer size, number of adaptation steps, etc. The paper's ablation runs use a buffer capacity of 100 (`ONLINE_MAX_SUPPORT`); the deployed service uses 40.
 
@@ -321,6 +343,7 @@ Within a workload, `training_config.json` is identical across the ablation, buff
 | `ablation/ablation_05_erm_learn_eval_erm_buffer.py` | Table 5, A5-ERM | Same online mechanism as A5 on top of a plain ERM initialization (no meta-training) |
 | `ablation/ablation_06_learn_eval_maml_adapt_shared.py` | Table 5, A6 | Persisted variant: online SGD updates are written back into the shared model (the deployed configuration) |
 | `ablation/ablation_07_learn_eval_maml_adapt_no_buffer.py` | Table 5, A7 | Persisted updates from the single most recent sample per production (naive online SGD) |
+| `ablation/ablation_08_10_transformer.py` | Table 5, A8--A10 | Shared Transformer entrypoint: A8 = ephemeral 100/4 buffer, A9 = persisted 100/4 buffer, A10 = persisted single-sample 1/1 support; select a workload-specific `training_config.transformer_a*.json` |
 | `buffer/ablation_05_learn_eval_maml_fs_buffer_sweep.py` | Table 6, Figs. 7–8 | Buffer-capacity sweep (n = 10 … 500) on both workloads |
 | `buffer/ablation_06b_*`, `ablation_06c_*` | Section 6.3 | Minimum-support threshold analysis (with bootstrap uncertainty) |
 | `task_definition/ablation_06_learn_eval_maml_adapt_shared_{prod_id,host_id,host_and_prod_id}.py` | Table 9 | Task identity = Production ID, hostname, or both; use `configs/aliprod/training_config.hostname_split.json` (prod_id/host_id scripts) or `training_config.hostname_and_prod_id_split.json` (the combined-key script) |
@@ -330,4 +353,7 @@ Within a workload, `training_config.json` is identical across the ablation, buff
 | `analysis/sample_collection_figures.py`, `user_production_time_distribution.py` | Figs. 4–6 | Data-characterization figures of Section 3 |
 | `analysis/sensitivity_metrics.py`, `scalability_chart.py`, `cf_aliprod_figure.py` | Figs. 7–8, 13, 15 | Figure scripts fed with the numbers from the experiment logs |
 
-The Transformer-backbone variants (A8–A10) and the non-adaptive baselines of Table 3 (CatBoost, XGBoost, TabNet, Transformer) are trained with the base-model entrypoint (`alice_torchrun.py`) and are not part of this folder. Load-test code for Section 7 lives in a separate Gatling project.
+The non-adaptive baselines of Table 3 (CatBoost, XGBoost, TabNet, Transformer)
+are trained with the base-model entrypoint (`alice_torchrun.py`) and are not
+part of this folder. Load-test code for Section 7 lives in a separate Gatling
+project.
