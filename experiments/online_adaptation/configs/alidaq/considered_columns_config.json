@@ -1,0 +1,43 @@
+{
+  "categories_columns": [
+    "filestocheck",
+    "inputfile",
+    "lpmmetadata",
+    "memorysize",
+    "output",
+    "packages",
+    "validationcommand",
+    "hostname",
+    "cpuefficiency",
+    "site_trace",
+    "jalien_version.tag",
+    "jalien_version.githash",
+    "cpu_info.cpu_model_name",
+    "cpu_info.cpu_power_management",
+    "virtualization.virtualization:",
+    "addr"
+  ],
+  
+  "numerical_columns": [
+    "job_id",
+    "job_submit_timestamp",
+    "lpmchainid",
+    "lpmjobtypeid",
+    "masterjobid",
+    "price",
+    "ttl",
+    "pid",
+    "runningtimestamp",
+    "startedtimestamp",
+    "lhcbmarks.lhcbmarks",
+    "singularity_debug.execution_time",
+    "ram_info.ram_kb_sreclaimable",
+    "predicted_weighted_ttl",
+    "predicted_weighted_ttl_std",
+    "energy_level_numeric"
+  ],
+  "special_columns": [],
+  "inner_num_columns": [],
+  "inner_cat_columns": []
+}
+ 

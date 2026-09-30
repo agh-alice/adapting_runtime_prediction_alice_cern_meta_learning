@@ -1,0 +1,42 @@
+{
+  "categories_columns": [
+    "lpmmetadata",
+    "output",
+    "splitted",
+    "validationcommand",
+    "hostname",
+    "cpuefficiency",
+    "site_trace",
+    "ce_name",
+    "taskset_other_processes.entries",
+    "batch_queue.version",
+    "cpu_info.cpu_flags",
+    "cpu_info.cpu_microcode",
+    "cpu_info.cpu_model_name",
+    "collision_type",
+    "addr"
+  ],
+  
+  "numerical_columns": [
+    "startedtimestamp",
+    "lpmchainid",
+    "lpmjobtypeid",
+    "masterjobid",
+    "workdirectorysize",
+    "lhcbmarks.lhcbmarks",
+    "cpu_info.cpu_apicid",
+    "cpu_info.cpu_siblings",
+    "cpu_info.cpu_cpu_family",
+    "cpu_info.cpu_thread_per_core_count",
+    "cpu_info.cpu_cores_per_socket_count",
+    "ulimit.ulimit_current_max_user_processes",
+    "energy_level_numeric",
+    "predicted_weighted_ttl",
+    "predicted_weighted_ttl_std",
+    "estimatedthroughput"
+  ],
+  "special_columns": [],
+  "inner_num_columns": [],
+  "inner_cat_columns": []
+}
+ 

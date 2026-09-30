@@ -1,0 +1,38 @@
+{
+  "data_path": "XXX",
+  "considered_columns_config_path": "considered_columns_config.json",
+  "filter_data_config_path": "filter_data_config.json",
+  "processing_target": "MLP_EMBEDINGS",
+  "embeding_reduction_const": 1000,
+  "multiprocessing_distributed": false,
+  "verbose": true,
+  "workers": 4,
+  "dist_backend": "nccl",
+  "seed": 42,
+  "distinct_split_column": [
+    "hostname"
+  ],
+  "model_name": "ALIPROD_MAML",
+  "monte_carlo_dropout": 0,
+  "batch_size": 512,
+  "epochs": 25,
+  "evaluation_frequency": 1,
+  "checkpoint_frequency": 25,
+  "train_valid_split": 0.5,
+  "shuffle_before_split": false,
+  "shuffle_after_split": true,
+  "learning_rate": 0.001,
+  "optimizer": "adam",
+  "scheduler": "cosine",
+  "loss": "huber",
+  "loss_coeff": 1,
+  "aux_loss_coeff": 0.05,
+  "metrics": [
+    "huber",
+    "uep",
+    "mae",
+    "rmse",
+    "smape",
+    "r2_score"
+  ]
+}
